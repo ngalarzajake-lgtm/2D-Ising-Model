@@ -1,0 +1,31 @@
+# C++ build artifacts
+*.exe
+*.o
+*.obj
+*.out
+build/
+
+# Python cache and local environments
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.ipynb_checkpoints/
+
+# LaTeX intermediate files
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.synctex.gz
+*.toc
+*.lof
+*.lot
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
