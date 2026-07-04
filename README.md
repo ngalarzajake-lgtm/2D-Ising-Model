@@ -8,87 +8,139 @@ Here is the lattice evolving over time at three temperatures:
 
 ![2D Ising lattice animation](figures/ising_lattice_evolution.gif)
 
-At low temperature, neighboring spins prefer to line up, so large ordered regions appear. At high temperature, thermal motion keeps breaking the order. Near the critical temperature, the lattice becomes the most interesting: clusters form at many length scales, and the system sits right between ordered and disordered behavior.
+At low temperature, neighboring spins align into ordered domains. At high temperature, thermal fluctuations destroy long-range order. Near the critical point, the lattice develops large fluctuating clusters, which is the visual signature of critical behavior.
 
-## Ising Model Background
+## Statistical Mechanical Model
 
-The 2D Ising model puts one spin on every point of a square lattice:
+The two-dimensional Ising model assigns a binary spin variable to every site of an `N x N` square lattice:
 
-$$s_i \in \{-1,+1\}$$
+$$s_i\in\{-1,+1\}$$
 
-For the ferromagnetic model, neighboring spins prefer to point in the same direction. The Hamiltonian is:
+For nearest-neighbor interactions, the Hamiltonian is:
 
 $$\mathcal{H}(\mathbf{s})=-J\sum_{\langle i,j\rangle}s_i s_j-h\sum_i s_i$$
 
-In this project, the external field is zero, so $h=0$. The nearest-neighbor term is the whole game: aligned spins give $s_i s_j=+1$, which lowers the energy; opposite spins give $s_i s_j=-1$, which raises it.
+Here, `J` is the coupling strength, `h` is the external magnetic field, and the notation `<i,j>` means nearest-neighbor pairs. This project uses the ferromagnetic, zero-field case:
 
-The intimidating part is that the full equilibrium behavior lives inside the partition function:
+$$J=1,\qquad h=0$$
 
-$$Z_N(\beta)=\sum_{\{s_i=\pm1\}}\exp[-\beta\mathcal{H}(\mathbf{s})],\qquad \beta=\frac{1}{k_BT}$$
+The canonical probability of observing a spin configuration is given by the Boltzmann distribution:
 
-For an $N\times N$ lattice, that sum has:
+$$P(\mathbf{s})=\frac{e^{-\beta\mathcal{H}(\mathbf{s})}}{Z_N(\beta)}$$
 
-$$2^{N^2}$$
+where the partition function is:
 
-possible spin configurations. Monte Carlo is the escape hatch: instead of enumerating every state, it samples the states that actually matter thermodynamically.
+$$Z_N(\beta)=\sum_{\{s_i=\pm1\}}e^{-\beta\mathcal{H}(\mathbf{s})},\qquad \beta=\frac{1}{k_BT}$$
 
-The simulation uses the dimensionless temperature:
+This is the difficult object hidden underneath the simulation. For an `N x N` lattice, the number of possible spin states is:
 
-$$\alpha=\frac{k_BT}{J},\qquad K=\beta J=\frac{J}{k_BT}=\frac{1}{\alpha}$$
+$$\Omega=2^{N^2}$$
 
-The code sets $J=1$, so $\alpha$ is the temperature scale.
+For `N = 40`, that is `2^1600` configurations, so direct enumeration is not practical. Monte Carlo sampling is used to estimate equilibrium averages without explicitly summing over the full state space.
 
-## Metropolis Update
+The dimensionless temperature used in the simulation is:
 
-The simulation flips one randomly chosen spin at a time. Only the four nearest neighbors matter for the energy change:
+$$\alpha=\frac{k_BT}{J},\qquad K=\beta J=\frac{1}{\alpha}$$
 
-$$\Delta E=2Js_{i,j}\left(s_{i+1,j}+s_{i-1,j}+s_{i,j+1}+s_{i,j-1}\right)$$
+## Observables
 
-The Metropolis rule is compact:
+The total magnetization is:
 
-$$P_{\mathrm{accept}}=\min\left(1,e^{-\beta\Delta E}\right)$$
+$$M=\sum_i s_i$$
 
-With $J=1$, this becomes:
+The average absolute magnetization per spin is:
 
-$$P_{\mathrm{accept}}=\min\left(1,e^{-\Delta E/\alpha}\right)$$
+$$m=\frac{\langle |M| \rangle}{N^2}$$
 
-This is what lets the lattice sometimes make an energetically bad move. That randomness is important because real thermal systems fluctuate, especially near the critical point.
+The total energy is computed from nearest-neighbor spin products:
 
-## Onsager's Critical Temperature
+$$E=-J\sum_{\langle i,j\rangle}s_i s_j$$
 
-The 2D Ising model is famous because Lars Onsager solved the square-lattice model exactly in 1944. One of the biggest results is the exact critical temperature for the infinite lattice.
+The fluctuation formulas used for the response functions are:
 
-For the square lattice, the critical point satisfies:
+$$\frac{C_V}{N^2}=\frac{\langle E^2\rangle-\langle E\rangle^2}{\alpha^2N^2}$$
+
+$$\frac{\chi}{N^2}=\frac{\langle M^2\rangle-\langle |M|\rangle^2}{\alpha N^2}$$
+
+These quantities become especially important near the phase transition because energy and magnetization fluctuations grow strongly in the critical region.
+
+## Metropolis Sampling
+
+Each trial move flips one randomly chosen spin. Because only nearest neighbors contribute to the local energy change, the flip energy is:
+
+$$\Delta E=2Js_{i,j}(s_{i+1,j}+s_{i-1,j}+s_{i,j+1}+s_{i,j-1})$$
+
+The Metropolis acceptance probability is:
+
+$$P_{\mathrm{accept}}=\min(1,e^{-\beta\Delta E})$$
+
+With `J = 1` and `alpha = k_B T / J`, this becomes:
+
+$$P_{\mathrm{accept}}=\min(1,e^{-\Delta E/\alpha})$$
+
+This rule allows energetically unfavorable moves with a temperature-dependent probability, which is what lets the simulation sample the canonical ensemble rather than simply falling into the lowest-energy state.
+
+## Onsager Critical Point
+
+The two-dimensional square-lattice Ising model is famous because Lars Onsager solved the zero-field model exactly in 1944. The critical coupling satisfies:
 
 $$\sinh(2K_c)=1$$
 
-Then:
+Therefore:
 
 $$2K_c=\sinh^{-1}(1)=\ln(1+\sqrt{2})$$
 
 $$K_c=\frac{1}{2}\ln(1+\sqrt{2})$$
 
-Since $\alpha=1/K$, the critical dimensionless temperature is:
+Since `alpha = 1 / K`, the exact infinite-lattice critical temperature is:
 
 $$\alpha_c=\frac{2}{\ln(1+\sqrt{2})}\approx2.269$$
 
-That number is the vertical reference line in the plots. My finite lattices do not produce a perfectly sharp singularity because `N = 20` and `N = 40` are still small compared with the infinite model. Instead, the transition shows up as rounded peaks in specific heat and susceptibility near Onsager's value.
-
-The spontaneous magnetization also has a famous exact form, later derived by Yang:
+The spontaneous magnetization below the critical temperature is given by the Onsager-Yang expression:
 
 $$m(K)=\left[1-\sinh^{-4}(2K)\right]^{1/8},\qquad K>K_c$$
 
 $$m(K)=0,\qquad K\le K_c$$
 
-That is why the magnetization curve drops so sharply near the critical region.
+In a finite lattice, the singularity is rounded rather than perfectly sharp. The simulated peaks in specific heat and susceptibility therefore appear close to, but not exactly at, `alpha_c`.
 
-## The Bigger Run
+## Simulation Details
 
-The main C++ simulation runs the Metropolis algorithm for two lattice sizes:
+| Quantity | Value |
+| --- | --- |
+| Lattice sizes | `N = 20`, `N = 40` |
+| Boundary condition | Periodic |
+| Coupling constant | `J = 1` |
+| External field | `h = 0` |
+| Temperature variable | `alpha = k_B T / J` |
+| Temperature range | `1.00 <= alpha <= 4.00` |
+| Temperature step | `0.01` |
+| Temperature points | `301` |
+| Equilibration per temperature | `100,000` sweeps |
+| Sampling per temperature | `300,000` sweeps |
+| Measurement frequency | Once per sweep after equilibration |
+| One sweep | `N^2` attempted spin flips |
 
-- `N = 20`
-- `N = 40`
+The full scan is deliberately heavy. For each temperature, the code performs `400,000` total sweeps. That corresponds to:
 
-It scans temperatures from `alpha = 1.00` to `alpha = 4.00` and records energy, magnetization, specific heat, susceptibility, and acceptance ratio.
+| Lattice | Attempts per sweep | Attempts per temperature | Attempts over 301 temperatures | Measurements per temperature |
+| --- | ---: | ---: | ---: | ---: |
+| `N = 20` | `400` | `160,000,000` | `48,160,000,000` | `300,000` |
+| `N = 40` | `1,600` | `640,000,000` | `192,640,000,000` | `300,000` |
+
+## Results
+
+The simulation compares the finite-size behavior of the `N = 20` and `N = 40` lattices against the exact infinite-lattice critical value:
+
+$$\alpha_c\approx2.269$$
 
 ![Summary of Ising observables](figures/ising_observables_summary.png)
+
+Peak estimates from the saved Monte Carlo data:
+
+| Lattice | Specific heat peak alpha | Peak `C_V / N^2` | Susceptibility peak alpha | Peak `chi / N^2` |
+| --- | ---: | ---: | ---: | ---: |
+| `N = 20` | `2.31` | `1.67902` | `2.35` | `9.21902` |
+| `N = 40` | `2.29` | `2.01689` | `2.31` | `30.8721` |
+
+The larger lattice shows sharper response-function peaks and a susceptibility peak closer to Onsager's infinite-system result. This is consistent with finite-size rounding: small lattices cannot produce a true thermodynamic singularity, but increasing `N` makes the transition region narrower and more pronounced.
