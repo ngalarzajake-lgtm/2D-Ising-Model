@@ -1,107 +1,70 @@
-# 2D Ising Model Monte Carlo Simulation
+# 2D Ising Model
 
-Course project for **CH.50013 Statistical Thermodynamics**.
+Tiny spins, big phase transition.
 
-This repository contains a C++ implementation of the two-dimensional ferromagnetic Ising model using the Metropolis Monte Carlo algorithm, along with generated simulation data, plots, and the final report.
+This was my **CH.50013 Statistical Thermodynamics** project: a Monte Carlo simulation of the 2D Ising model. The fun part is watching a random grid of up/down spins suddenly start behaving like a material with order, disorder, and a critical point.
 
-## Project Overview
+## Lattice In Motion
 
-The model simulates an \(N \times N\) square lattice of spins \(s_i = \pm 1\) with periodic boundary conditions and zero external field. The coupling constant is set to \(J = 1\), and temperature is represented by the dimensionless parameter
+Here is the lattice evolving over time at three temperatures:
 
-\[
-\alpha = \frac{k_B T}{J}.
-\]
+![2D Ising lattice animation](figures/ising_lattice_evolution.gif)
 
-The simulation compares finite lattices with \(N=20\) and \(N=40\), then evaluates how the observables behave near the exact infinite-lattice critical point
+What is happening:
 
-\[
-\alpha_c = \frac{2}{\ln(1+\sqrt{2})} \approx 2.269.
-\]
+- Cold lattice, `alpha = 1.6`: spins quickly form big ordered regions.
+- Near critical, `alpha = 2.269`: the lattice gets dramatic, with large clusters constantly forming and breaking.
+- Hot lattice, `alpha = 3.4`: thermal noise wins and the grid stays messy.
 
-## What Is Included
+The critical temperature for the infinite 2D square-lattice Ising model is about `alpha_c = 2.269`, so the middle panel is the interesting one.
 
-| Path | Description |
-| --- | --- |
-| `Ising_Model.cpp` | Main C++ simulation code |
-| `plot_ising_results.py` | Python plotting script for the generated CSV files |
-| `ising_data_N20.csv` | Monte Carlo output for a 20 x 20 lattice |
-| `ising_data_N40.csv` | Monte Carlo output for a 40 x 40 lattice |
-| `figures/` | Generated PNG and PDF plots |
-| `Ising_Model_Documentation.tex` | LaTeX source for the final report |
-| `Ising_Model_Documentation.pdf` | Compiled final report |
+## The Bigger Run
 
-## Methods
+The main C++ simulation runs the Metropolis algorithm for two lattice sizes:
 
-For each lattice size and temperature point:
+- `N = 20`
+- `N = 40`
 
-- Spins are initialized randomly as \(+1\) or \(-1\).
-- A trial spin flip is selected at a random lattice site.
-- The energy change is computed from the four nearest neighbors.
-- The move is accepted if it lowers the energy, or accepted probabilistically using \(e^{-\Delta E / \alpha}\).
-- Measurements are collected after equilibration.
-
-Simulation settings used for the included data:
-
-| Setting | Value |
-| --- | --- |
-| Lattice sizes | \(N=20\), \(N=40\) |
-| Temperature range | \(\alpha = 1.00\) to \(4.00\) |
-| Temperature step | \(0.01\) |
-| Equilibration | 100,000 sweeps per temperature |
-| Sampling | 300,000 sweeps per temperature |
-| One sweep | \(N^2\) attempted spin flips |
-
-## Results Summary
-
-The finite-size simulations reproduce the expected qualitative transition from an ordered low-temperature state to a disordered high-temperature state.
-
-Key observations:
-
-- The magnetization decreases sharply near the critical region.
-- The specific heat peak occurs near \(\alpha \approx 2.31\) for \(N=20\) and \(\alpha \approx 2.29\) for \(N=40\).
-- The susceptibility peak occurs near \(\alpha \approx 2.35\) for \(N=20\) and \(\alpha \approx 2.31\) for \(N=40\).
-- The larger \(N=40\) lattice shows sharper finite-size behavior closer to the thermodynamic-limit critical point.
+It scans temperatures from `alpha = 1.00` to `alpha = 4.00` and records energy, magnetization, specific heat, susceptibility, and acceptance ratio.
 
 ![Summary of Ising observables](figures/ising_observables_summary.png)
 
-## Reproducing the Results
+The cool science bit:
 
-Compile the simulation:
+- Magnetization drops as the system goes from ordered to disordered.
+- Specific heat and susceptibility spike near the critical region.
+- The `N = 40` lattice has sharper peaks than `N = 20`, which is what you expect as the system gets closer to the thermodynamic limit.
 
-```bash
-g++ -std=c++17 -O2 Ising_Model.cpp -o ising_model
-```
+## Files
 
-Run the simulation:
+| File | What it is |
+| --- | --- |
+| `Ising_Model.cpp` | C++ Monte Carlo simulation for the full data run |
+| `animate_ising_lattice.py` | Fast visual simulation that creates the lattice GIF |
+| `plot_ising_results.py` | Makes the summary plots from the CSV files |
+| `ising_data_N20.csv` | Data from the `N = 20` run |
+| `ising_data_N40.csv` | Data from the `N = 40` run |
+| `figures/` | Plots and the lattice animation |
+| `Ising_Model_Documentation.pdf` | Full write-up/report |
 
-```bash
-./ising_model
-```
+## How To Make The Visuals Again
 
-On Windows PowerShell, the executable may be run as:
-
-```powershell
-.\ising_model.exe
-```
-
-The full simulation is computationally expensive because it performs long equilibration and sampling runs for both lattice sizes across 301 temperature values. The included CSV files are the outputs used to generate the submitted figures and report.
-
-Install the plotting dependency:
+Regenerate the lattice animation:
 
 ```bash
-python -m pip install -r requirements.txt
+python animate_ising_lattice.py
 ```
 
-Regenerate the figures from the included CSV files:
+Regenerate the summary plots from the included CSV files:
 
 ```bash
 python plot_ising_results.py
 ```
 
-## Report
+The full C++ data run is intentionally not the quick demo. It uses long equilibration and sampling runs, so the included CSV files are the saved results used for the plots.
 
-The full write-up is available in [`Ising_Model_Documentation.pdf`](Ising_Model_Documentation.pdf). It includes the model background, algorithm description, finite-size comparison, plots, and additional discussion of Monte Carlo sampling in chemistry.
+## Built For
 
-## Course Context
-
-This project was completed by **Jacob Emmanuel Sadorra** for **CH.50013 Statistical Thermodynamics** in June 2026.
+**Jacob Emmanuel Sadorra**  
+CH.50013 Statistical Thermodynamics  
+June 2026
