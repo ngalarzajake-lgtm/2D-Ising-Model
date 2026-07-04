@@ -2,7 +2,7 @@
 
 Tiny spins, big phase transition.
 
-I made this from a graduate-level statistical thermodynamics course: **CH50013_2026_1**. It is a Monte Carlo simulation of the 2D Ising model, which is one of those physics models that looks almost too simple at first: a grid of spins that can only point up or down. Then, as temperature changes, the grid starts acting like a real material with order, disorder, and a phase transition.
+I made this from a graduate-level statistical thermodynamics course: **CH50013**. It is a Monte Carlo simulation of the 2D Ising model, which is one of those physics models that looks almost too simple at first: a grid of spins that can only point up or down. Then, as temperature changes, the grid starts acting like a real material with order, disorder, and a phase transition.
 
 ## Lattice In Motion
 
